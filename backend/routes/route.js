@@ -25,36 +25,41 @@ router.get("/get-all-added-user",authMiddleware,getAllAddeduser)
 
 
 
-
-
-
-
-
-
-
-
-
-router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-
-// Step 2: Google callback
 router.get(
   "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: process.env.FRONTEND_URL }),
-  (req, res) => {
+  (req, res, next) => {
+    passport.authenticate("google", (err, user) => {
+      const frontendUrls = process.env.FRONTEND_URLS.split(",");
+      const origin = req.headers.origin;
+      const redirectUrl = frontendUrls.includes(origin) ? origin : frontendUrls[0];
 
-    const token = jwt.sign({ _id: req.user._id,email:req.user.email,name:req.user.name,role:req.user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    const isProduction = process.env.NODE_ENV === "production"
-    const cookieOptions = {
-      httpOnly:true,
-      secure :isProduction,
-      sameSite:isProduction?"None":"Lax",
-      maxAge:7*24*60*60*1000,
-      path:"/"
-    }
+      if (err || !user) {
+        // Failure case → redirect back with an error param
+        return res.redirect(`${redirectUrl}/auth?error=google_auth_failed`);
+      }
 
-    res.cookie("token", token, cookieOptions);
-    res.redirect(process.env.FRONTEND_URL); // redirect to frontend
+      // Success case → generate token and set cookie
+      const token = jwt.sign(
+        { _id: user._id, email: user.email, name: user.name, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      const isProduction = process.env.NODE_ENV === "production";
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      };
+
+      res.cookie("token", token, cookieOptions);
+
+      return res.redirect(redirectUrl);
+    })(req, res, next);
   }
 );
+
 
 export default router
