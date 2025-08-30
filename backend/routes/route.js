@@ -26,22 +26,21 @@ router.get("/get-all-added-user",authMiddleware,getAllAddeduser)
 
 
 
+router.get("/auth/google", (req, res, next) => {
+  const origin = req.query.origin; // This exists here, because it's browser → backend
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state: origin, // 👈 send origin as state
+  })(req, res, next);
+});
 
-
-
-
-
-
-
-
-router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 router.get(
   "/auth/google/callback",
   (req, res, next) => {
     passport.authenticate("google", (err, user) => {
       const frontendUrls = process.env.FRONTEND_URLS.split(",");
-      const origin = req.headers.origin;
+      const origin = req.query.state;
       const redirectUrl = frontendUrls.includes(origin) ? origin : frontendUrls[0];
 
       if (err || !user) {

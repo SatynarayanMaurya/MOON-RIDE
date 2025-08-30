@@ -53,7 +53,10 @@ function SignInPage() {
   }
 
   const handleLoginWithGoogle = (credentialResponse) => {
-    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`; // redirect to backend
+    console.log("Origin : ",window.location.origin)
+    // window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`; // redirect to backend
+    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google?origin=${window.location.origin}`; // redirect to backend
+    
   };
 
   return (

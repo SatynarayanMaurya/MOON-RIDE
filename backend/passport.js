@@ -14,8 +14,6 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Check if user exists
-        // let user = await User.findOne({ googleId: profile.id });
         const email = profile.emails?.[0]?.value;
         const profileImage = profile?.photos?.[0]?.value
         const name = profile?.displayName;
