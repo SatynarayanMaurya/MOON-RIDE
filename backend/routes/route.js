@@ -25,6 +25,17 @@ router.get("/get-all-added-user",authMiddleware,getAllAddeduser)
 
 
 
+
+
+
+
+
+
+
+
+
+router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
 router.get(
   "/auth/google/callback",
   (req, res, next) => {
